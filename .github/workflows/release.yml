@@ -1,0 +1,31 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "请输入要发布的版本号 (例如: 11.0)"
+        required: true
+        default: "11.0"
+        type: string
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3" # Not needed with a .ruby-version, .tool-versions or mise.toml
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: build artifacts
+        id: build
+        run: |
+          ruby emoji-test-parser.rb ${{ github.event.inputs.version }}
+      - name: release
+        uses: softprops/action-gh-release@v2
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ github.event.inputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
+          files: unicode-emoji-data.json
